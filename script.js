@@ -1,29 +1,4 @@
 /* =====================================================================
-   BLOOM — TO-DO APP SCRIPT
-   Table of contents:
-   1. State & Constants
-   2. DOM References
-   3. Utility Helpers
-   4. LocalStorage Persistence
-   5. Toast Notifications
-   6. Loading Screen
-   7. Theme (Light/Dark) Handling
-   8. Greeting, Clock, Date, Quotes
-   9. Streak Counter
-   10. Task CRUD (Create, Read, Update, Delete)
-   11. Rendering (List, Search Highlighting, Empty State)
-   12. Filtering, Searching, Sorting
-   13. Statistics Dashboard (Ring + Bar + Numbers)
-   14. Confetti Celebration
-   15. Confirm Modal
-   16. Import / Export JSON
-   17. Ripple Button Effect
-   18. Event Listeners & Keyboard Shortcuts
-   19. App Initialization
-   ===================================================================== */
-
-
-/* =====================================================================
    1. STATE & CONSTANTS
    ===================================================================== */
 const STORAGE_KEYS = {

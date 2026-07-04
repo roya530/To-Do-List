@@ -1,26 +1,4 @@
 /* =====================================================================
-   BLOOM — TO-DO APP STYLES
-   Table of contents:
-   1. CSS Variables & Theme Tokens
-   2. Resets & Base Styles
-   3. Background Blobs & Loading Screen
-   4. Layout Shell (Header, Main, Footer)
-   5. Glass Card Component
-   6. Stats Panel (Progress Ring, Stats Grid, Progress Bar)
-   7. Task Form (Input, Priority/Category/Date, Add Button)
-   8. Toolbar (Search + Filters + Sort)
-   9. Task List & Task Item
-   10. Empty State
-   11. Toasts
-   12. Modal (Confirm Dialog)
-   13. Buttons & Small Components
-   14. Animations & Keyframes
-   15. Responsive Media Queries
-   16. Accessibility (focus states, reduced motion)
-   ===================================================================== */
-
-
-/* =====================================================================
    1. CSS VARIABLES & THEME TOKENS
    ===================================================================== */
 :root {
