@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bloom — Your Daily To-Do Space</title>
+  <meta name="description" content="Bloom: a cute, minimalist, glassmorphism to-do list app." />
+
+  <!-- Google Fonts: Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===================== LOADING SCREEN ===================== -->
+  <div id="loadingScreen" class="loading-screen" aria-hidden="true">
+    <div class="loading-bloom">
+      <span class="petal petal-1"></span>
+      <span class="petal petal-2"></span>
+      <span class="petal petal-3"></span>
+      <span class="petal petal-4"></span>
+      <span class="petal-center"></span>
+    </div>
+    <p class="loading-text">Blooming your day…</p>
+  </div>
+
+  <!-- ===================== AMBIENT BACKGROUND BLOBS ===================== -->
+  <div class="bg-blobs" aria-hidden="true">
+    <div class="blob blob-a"></div>
+    <div class="blob blob-b"></div>
+    <div class="blob blob-c"></div>
+  </div>
+
+  <!-- ===================== TOAST CONTAINER ===================== -->
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- ===================== CONFETTI CANVAS ===================== -->
+  <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
+
+  <div class="app-shell">
+
+    <!-- ===================== HEADER ===================== -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand">
+          <span class="brand-mark"><i class="fa-solid fa-seedling"></i></span>
+          <span class="brand-name">Bloom</span>
+        </div>
+        <div class="greeting-block">
+          <h1 id="greetingText" class="greeting-text">Good day</h1>
+          <p class="date-line">
+            <span id="dayDate"></span>
+            <span class="dot-sep">•</span>
+            <span id="liveClock"></span>
+          </p>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="streak-chip" title="Daily productivity streak">
+          <i class="fa-solid fa-fire"></i>
+          <span id="streakCount">0</span>
+          <span class="streak-label">day streak</span>
+        </div>
+        <button id="themeToggle" class="icon-btn theme-toggle" aria-label="Toggle dark mode" title="Toggle theme (T)">
+          <i class="fa-solid fa-moon" id="themeIcon"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===================== QUOTE STRIP ===================== -->
+    <p id="quoteStrip" class="quote-strip">
+      <i class="fa-solid fa-quote-left" aria-hidden="true"></i>
+      <span id="quoteText">Loading a little inspiration…</span>
+    </p>
+
+    <main class="app-main">
+
+      <!-- ===================== LEFT: STATS PANEL ===================== -->
+      <aside class="stats-panel glass-card">
+        <h2 class="panel-title"><i class="fa-solid fa-chart-simple"></i> Your progress</h2>
+
+        <div class="progress-ring-wrap">
+          <svg class="progress-ring" width="150" height="150" viewBox="0 0 150 150">
+            <circle class="ring-track" cx="75" cy="75" r="64"></circle>
+            <circle id="ringProgress" class="ring-progress" cx="75" cy="75" r="64"></circle>
+            <defs>
+              <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffb3c6" />
+                <stop offset="100%" stop-color="#a3d9c9" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="ring-center">
+            <span id="progressPercent" class="ring-percent">0%</span>
+            <span class="ring-caption">done</span>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span id="statTotal" class="stat-number">0</span>
+            <span class="stat-label">Total</span>
+          </div>
+          <div class="stat-box">
+            <span id="statPending" class="stat-number">0</span>
+            <span class="stat-label">Pending</span>
+          </div>
+          <div class="stat-box">
+            <span id="statCompleted" class="stat-number">0</span>
+            <span class="stat-label">Completed</span>
+          </div>
+        </div>
+
+        <div class="progress-bar-track">
+          <div id="progressBarFill" class="progress-bar-fill"></div>
+        </div>
+
+        <div class="panel-actions">
+          <button id="exportBtn" class="ghost-btn" title="Export tasks as JSON">
+            <i class="fa-solid fa-file-export"></i> Export
+          </button>
+          <label class="ghost-btn" for="importFile" title="Import tasks from JSON">
+            <i class="fa-solid fa-file-import"></i> Import
+          </label>
+          <input type="file" id="importFile" accept="application/json" hidden />
+        </div>
+        <button id="clearCompletedBtn" class="ghost-btn danger-ghost">
+          <i class="fa-solid fa-broom"></i> Clear completed
+        </button>
+      </aside>
+
+      <!-- ===================== RIGHT: TASKS PANEL ===================== -->
+      <section class="tasks-panel glass-card">
+
+        <!-- Add task form -->
+        <form id="taskForm" class="task-form" autocomplete="off">
+          <div class="input-row">
+            <i class="fa-solid fa-pen-fancy input-icon"></i>
+            <input
+              type="text"
+              id="taskInput"
+              class="task-input"
+              placeholder="What's blooming in your mind today? 🌸"
+              maxlength="140"
+            />
+          </div>
+
+          <div class="input-extras">
+            <select id="prioritySelect" class="mini-select" title="Priority">
+              <option value="low">🟢 Low</option>
+              <option value="medium" selected>🟡 Medium</option>
+              <option value="high">🔴 High</option>
+            </select>
+
+            <select id="categorySelect" class="mini-select" title="Category">
+              <option value="general">🌿 General</option>
+              <option value="work">💼 Work</option>
+              <option value="personal">🏡 Personal</option>
+              <option value="health">💪 Health</option>
+              <option value="learning">📚 Learning</option>
+            </select>
+
+            <input type="date" id="dueDateInput" class="mini-select date-input" title="Due date" />
+
+            <button type="submit" class="add-btn">
+              <i class="fa-solid fa-plus"></i> Add
+            </button>
+          </div>
+        </form>
+
+        <!-- Search + filters -->
+        <div class="toolbar">
+          <div class="search-row">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search your tasks…" />
+          </div>
+
+          <div class="filter-row">
+            <div class="filter-tabs" role="tablist" aria-label="Filter tasks">
+              <button class="filter-tab active" data-filter="all" role="tab" aria-selected="true">All</button>
+              <button class="filter-tab" data-filter="pending" role="tab" aria-selected="false">Pending</button>
+              <button class="filter-tab" data-filter="completed" role="tab" aria-selected="false">Completed</button>
+            </div>
+
+            <select id="sortSelect" class="mini-select" title="Sort tasks">
+              <option value="created">Date created</option>
+              <option value="alpha">Alphabetical</option>
+              <option value="priority">Priority</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Task list -->
+        <ul id="taskList" class="task-list"></ul>
+
+        <!-- Empty state -->
+        <div id="emptyState" class="empty-state">
+          <div class="empty-illustration">
+            <i class="fa-regular fa-face-smile-beam"></i>
+          </div>
+          <h3>All clear!</h3>
+          <p id="emptyStateMessage">Add your first task above and start blooming 🌱</p>
+        </div>
+
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>Made with <i class="fa-solid fa-heart"></i> — press <kbd>N</kbd> to add, <kbd>/</kbd> to search, <kbd>T</kbd> to toggle theme</p>
+    </footer>
+  </div>
+
+  <!-- ===================== DELETE ALL CONFIRM MODAL ===================== -->
+  <div id="confirmModal" class="modal-overlay" hidden>
+    <div class="modal-card glass-card">
+      <i class="fa-solid fa-triangle-exclamation modal-icon"></i>
+      <h3 id="modalTitle">Clear all completed tasks?</h3>
+      <p id="modalMessage">This action can't be undone.</p>
+      <div class="modal-actions">
+        <button id="modalCancelBtn" class="ghost-btn">Cancel</button>
+        <button id="modalConfirmBtn" class="add-btn danger-btn">Yes, clear it</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
