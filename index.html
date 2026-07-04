@@ -1,0 +1,467 @@
+// =========================================
+// TaskFlow - To Do List App
+// =========================================
+
+
+// =========================================
+// Select HTML Elements
+// =========================================
+
+const taskInput = document.getElementById("taskInput");
+const addButton = document.getElementById("addButton");
+const taskList = document.getElementById("taskList");
+const emptyState = document.getElementById("emptyState");
+const searchInput = document.getElementById("searchInput");
+
+const allFilter = document.getElementById("allFilter");
+const pendingFilter = document.getElementById("pendingFilter");
+const completedFilter = document.getElementById("completedFilter");
+const totalTasks = document.getElementById("totalTasks");
+const completedTasks = document.getElementById("completedTasks");
+const pendingTasks = document.getElementById("pendingTasks");
+
+const progressFill = document.getElementById("progressFill");
+const progressText = document.getElementById("progressText");
+const themeToggle = document.getElementById("themeToggle");
+const greeting = document.getElementById("greeting");
+const currentDate = document.getElementById("currentDate");
+
+// =========================================
+// Global Variables
+// =========================================
+
+let tasks = [];
+let currentFilter = "all";
+
+// =========================================
+// Initialize App
+// =========================================
+
+loadTasks();
+updateGreeting();
+updateDate();
+
+displayTasks();
+
+
+loadTheme();
+
+
+// =========================================
+// Event Listeners
+// =========================================
+
+addButton.addEventListener("click", addTask);
+
+taskInput.addEventListener("keydown", function(event){
+
+    if(event.key === "Enter"){
+
+        addTask();
+
+    }
+
+});
+
+// Search
+searchInput.addEventListener("input", displayTasks);
+
+themeToggle.addEventListener("click", toggleTheme);
+
+// Filters
+allFilter.addEventListener("click", function(){
+
+    currentFilter = "all";
+
+    displayTasks();
+
+});
+
+pendingFilter.addEventListener("click", function(){
+
+    currentFilter = "pending";
+
+    displayTasks();
+
+});
+
+completedFilter.addEventListener("click", function(){
+
+    currentFilter = "completed";
+
+    displayTasks();
+
+});
+
+
+// =========================================
+// Add Task
+// =========================================
+
+function addTask(){
+
+    const text = taskInput.value.trim();
+
+    if(text === ""){
+
+        alert("Please enter a task.");
+
+        return;
+
+    }
+
+    const task = {
+
+        id: Date.now(),
+
+        text: text,
+
+        completed: false,
+
+        editing: false
+  };
+
+    tasks.push(task);
+    saveTasks();
+
+    taskInput.value = "";
+
+    displayTasks();
+
+}
+
+
+// =========================================
+// Display Tasks
+// =========================================
+function displayTasks(){
+
+    taskList.innerHTML = "";
+
+    // Ensure editing is always defined safely
+    tasks = tasks.map(task => ({
+        ...task,
+        editing: !!task.editing
+    }));
+
+    const filteredTasks = tasks.filter(function(task){
+
+        const matchesSearch = task.text
+            .toLowerCase()
+            .includes(searchInput.value.toLowerCase());
+
+        if(currentFilter === "completed"){
+            return task.completed && matchesSearch;
+        }
+
+        if(currentFilter === "pending"){
+            return !task.completed && matchesSearch;
+        }
+
+        return matchesSearch;
+    });
+
+    if(filteredTasks.length === 0){
+        emptyState.style.display = "flex";
+        updateStatistics();
+        return;
+    }
+
+    emptyState.style.display = "none";
+
+    filteredTasks.forEach(function(task){
+
+        taskList.innerHTML += `
+
+        <li class="task-item ${task.completed ? "completed" : ""}">
+
+            <div class="task-left">
+
+                <!-- FIXED: proper button structure -->
+                <button class="complete-btn" onclick="toggleTask('${task.id}')">
+                    ${task.completed
+                        ? '<i class="fa-solid fa-check"></i>'
+                        : ""
+                    }
+                </button>
+
+                ${task.editing
+                    ? `
+                    <input
+                        class="edit-input"
+                        id="edit-${task.id}"
+                        value="${task.text}"
+                        onkeydown="if(event.key==='Enter') saveEdit('${task.id}');
+                                   if(event.key==='Escape') cancelEdit('${task.id}')">
+                    `
+                    : `
+                    <p class="task-text">
+                        ${task.text}
+                    </p>
+                    `
+                }
+
+            </div>
+
+            <div class="task-actions">
+
+                <button
+                    class="edit-btn"
+                    onclick="editTask('${task.id}')">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
+
+                <button
+                    class="delete-btn"
+                    onclick="deleteTask('${task.id}')">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+
+            </div>
+
+        </li>
+
+        `;
+    });
+
+    updateStatistics();
+}
+
+// =========================================
+// Delete Task
+// =========================================
+
+function deleteTask(id){
+
+    tasks = tasks.filter(function(task){
+
+        return task.id !== id;
+
+    });
+
+    saveTasks();
+    displayTasks();
+    
+
+}
+
+// =========================================
+// Toggle Task Completion
+// =========================================
+
+function toggleTask(id){
+
+    tasks = tasks.map(function(task){
+
+        if(task.id === id){
+
+            task.completed = !task.completed;
+
+        }
+
+        return task;
+
+    });
+
+    saveTasks();
+    displayTasks();
+
+}
+
+
+// =========================================
+// Edit Task
+// =========================================
+
+function editTask(id){
+    
+
+    tasks = tasks.map(task => {
+
+      return { ...task, editing:task.id === id };
+    });
+    displayTasks();
+}
+
+function saveEdit(id){
+
+    const input = document.getElementById(`edit-${id}`);
+
+    if(!input) return;
+
+    const newText = input.value.trim();
+
+    if(newText === "") return;
+
+    tasks = tasks.map(task =>{
+
+        if(task.id === id){
+            return {
+                ...task,
+                text: newText,
+                editing:false
+            };
+        }
+
+        return task;
+
+    });
+
+    saveTasks();   
+    displayTasks();
+}
+
+    displayTasks();
+
+
+function cancelEdit(id){
+
+    tasks = tasks.map(function(task){
+
+            return { ...task, editing: false };
+
+    });
+
+    displayTasks();
+}
+// =========================================
+// Save Tasks
+// =========================================
+
+function saveTasks(){
+
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+
+}
+
+
+// =========================================
+// Load Tasks
+// =========================================
+
+function loadTasks(){
+
+    const savedTasks = localStorage.getItem("tasks");
+
+    if(savedTasks){
+
+        tasks = JSON.parse(savedTasks);
+
+        // FIX: ensure editing property exists
+        tasks = tasks.map(task => {
+            return {
+                ...task,
+                editing: false
+            };
+        });
+    }
+}
+
+// =========================================
+// Update Statistics
+// =========================================
+
+function updateStatistics(){
+
+    const total = tasks.length;
+
+    const completed = tasks.filter(function(task){
+
+        return task.completed;
+
+    }).length;
+
+    const pending = total - completed;
+
+    totalTasks.textContent = total;
+
+    completedTasks.textContent = completed;
+
+    pendingTasks.textContent = pending;
+
+    let percentage = 0;
+
+    if(total > 0){
+
+        percentage = (completed / total) * 100;
+
+    }
+
+    progressFill.style.width = percentage + "%";
+
+    progressText.textContent = Math.round(percentage) + "%";
+
+}
+
+
+// =========================================
+// Theme
+// =========================================
+
+function toggleTheme(){
+
+    document.body.classList.toggle("light-mode");
+
+    if(document.body.classList.contains("light-mode")){
+
+        localStorage.setItem("theme","light");
+
+    }
+
+    else{
+
+        localStorage.setItem("theme","dark");
+
+    }
+
+}
+
+function loadTheme(){
+
+    const theme = localStorage.getItem("theme");
+
+    if(theme === "light"){
+
+        document.body.classList.add("light-mode");
+
+    }
+
+}
+
+function updateDate(){
+
+    const today = new Date();
+
+    currentDate.textContent =
+        today.toLocaleDateString("en-US",{
+
+            weekday:"long",
+            year:"numeric",
+            month:"long",
+            day:"numeric"
+
+        });
+
+}
+
+function updateGreeting(){
+
+    const hour = new Date().getHours();
+
+    if(hour < 12){
+
+        greeting.textContent = "Good Morning";
+
+    }else if(hour < 18){
+
+        greeting.textContent = "Good Afternoon";
+
+    }else{
+
+        greeting.textContent = "Good Evening";
+
+    }
+
+}
+
+
